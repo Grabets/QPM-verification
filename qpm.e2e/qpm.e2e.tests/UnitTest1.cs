@@ -10,7 +10,7 @@ namespace qpm.e2e.tests
     [TestFixture]
     public class Tests : PageTest
     {
-        [Test]
+        //[Test]
         public async Task HomepageHasPlaywrightInTitleAndGetStartedLinkLinkingtoTheIntroPage()
         {
             var launchOptions = PlaywrightSettingsProvider.LaunchOptions;

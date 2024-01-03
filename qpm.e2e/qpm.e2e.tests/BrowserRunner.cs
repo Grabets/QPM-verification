@@ -11,7 +11,7 @@ namespace qpm.e2e.tests
         {
             var launchOptions = new BrowserTypeLaunchOptions
             {
-                //Headless = false,
+                Headless = false,
                 Args = new List<string> { "--start-maximized" },
                 //SlowMo = 50,
                 
