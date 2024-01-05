@@ -1,6 +1,6 @@
 ﻿using Microsoft.Playwright;
 using NUnit.Framework;
-using System.Globalization;
+using qpm.e2e.tests.PageObjects;
 
 namespace qpm.e2e.tests
 {
@@ -17,14 +17,16 @@ namespace qpm.e2e.tests
         {
             //Add here browser runner dispose
             // https://temp-mail.org/
+            if (AdminPage.Url == BaseUrl + ProductIncrementsPage.ResourceName)
+            {
+                new DocumentItemElement().DeleteDocumentItems(AdminPage);
+            }
+
+
 
 
             // TODO: add remove for the PI here
-            var deletePIButtons = AdminPage.Locator("xpath=//div[@class='document__item']//span[@title='Delete']");
-            var deletePiButtonsList = deletePIButtons.AllAsync()
-                .Result
-                .ToList();
-            deletePiButtonsList.ForEach(x => x.ClickAsync().Wait());
+
         }
 
         [Test]
@@ -37,59 +39,46 @@ namespace qpm.e2e.tests
             var adminBrowser = new BrowserRunner();
             AdminPage = await LoadStartPage(adminName, password, adminBrowser);
 
+            //TODO: assept cookies
+
             //var userBrowser = new BrowserRunner();
             //var userPage = await LoadStartPage(userName, password, userBrowser);
 
             // admins actions for products and project activation
-            await AdminPage.Locator("xpath=//div[@class='products__activator']").ClickAsync();
-            await AdminPage.Locator("xpath=//div[@class='products__list']").ClickAsync();
-                  
-            await AdminPage.Locator("xpath=//div[@class='projects__activator']").ClickAsync();
-            await AdminPage.Locator("xpath=//div[@class='projects__list']//div[text()='Draft']").ClickAsync();
+            var headerElement = new HeaderElement(AdminPage);
+            await headerElement.ChooseFirstProduct();
+            await headerElement.ChooseFirstProject(projectName: "Draft");
 
-            //await adminPage.Locator("text=Create product increment").ClickAsync();
 
             // Create first PI
-            await AdminPage.Locator("text=Product increments").ClickAsync();
-            await CreatePI("First PI item", "This is first PI item description");
+            var piPage = await headerElement.PIButtonClick();
+            const string firstPiTitle = "First PI item";
+            await piPage.CreatePI(firstPiTitle, "This is first PI item description");
+            await piPage.CreatePI("Second PI item", "This is second PI item description");
 
-            // Create second PI
-            //await CreatePI("Second PI item", "This is second PI item description");
-
-
-        }
-
-
-
-        private async Task CreatePI(string piTitle, string piDescription)
-        {
+            //TODO: Here need to check the information about PI
             
-            await AdminPage.Locator("//button[text()='Create product increment']").ClickAsync(new() { Delay = 300});
 
-            var piItem = AdminPage.Locator("xpath=//div[@class='document__item']");//"xpath=//div[@style='margin-bottom: 8px;'][1]//div[@class='document__item']"
-            await piItem.WaitForAsync(new() { State = WaitForSelectorState.Visible});
-            //piItem.Locator("xpath=//button[@type='button']").ClickAsync();
-            await FillActionsAsync(piItem, "xpath=//div[@data-bunit-item]", piTitle);
-            await FillActionsAsync(piItem, "xpath=//div[@class='renderer' and @id]", piDescription);
+            //Move to the Subsystems page in order to create Epics
+            var subsystemPage = await SubsystemsPage.Navigate(AdminPage, BaseUrl);
 
-            await piItem.Locator("xpath=//div[contains(@class,'DatePicker')]//input").ClickAsync();
+            var subSystemItem = await subsystemPage.CreateSubsystem("First subsystem", "First subsystem description");
+            await subSystemItem.CreateCapability("First capability", "First capability description");
 
-            //TODO: We can have a problem with datepicker on the last day of the month.
-            await AdminPage.Locator("xpath=//div[contains(@class,'picker-calendar')]").Locator($"xpath=//button[contains(@aria-label, '{DateTime.Today.AddDays(1).ToString("dddd, dd MMMM yyyy", CultureInfo.InvariantCulture)}')]").ClickAsync();
+            await subSystemItem.CreateEpic("First Epic", "First Epic description", firstPiTitle);
 
-            await piItem.Locator("xpath=//span[@title='Update']").ClickAsync();
-        }
+            
+            
+            
+            
+            
+            
+            //TODO: too quick
+            subSystemItem.DeleteSubsystem();
 
-        private async Task FillActionsAsync(ILocator piItem, string innerItemXPath, string textToFill)
-        {
-            await Task.Delay(500);
-            var piItemName = piItem.Locator(innerItemXPath);
-            await piItemName.DblClickAsync(new() { Delay = 300 });
-            await piItemName.PressAsync("Control+a", new() { Delay = 50 });
-            await piItemName.PressSequentiallyAsync(textToFill);
-            await piItem.Locator("xpath=//span[@title='Update']").ClickAsync(new() { Delay = 300 });
-            //await piItemName.PressAsync("Enter", new() { Delay = 300 });
-            //await piItem.Locator("xpath=//span[@title='Update']").ClickAsync(new() { Delay = 300 });
+            await piPage.NavigateToPage(BaseUrl);
+            new DocumentItemElement().DeleteDocumentItems(AdminPage);
+
         }
 
         private static async Task<IPage> LoadStartPage(string adminName, string password, BrowserRunner adminBrowser)
