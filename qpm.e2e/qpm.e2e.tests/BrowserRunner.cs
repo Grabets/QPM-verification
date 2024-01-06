@@ -4,17 +4,15 @@ namespace qpm.e2e.tests
 {
     public class BrowserRunner
     {
-        public IPlaywright? PlaywrightInstance { get; set; }
-        public IBrowser? Browser { get; set; }
+        private IPlaywright? PlaywrightInstance;
+        private IBrowser? Browser;
 
-        public async Task<IPage> OpenInitPage(string url)
+        public async Task<IPage> OpenInitPage(string url, bool headlessMode)
         {
             var launchOptions = new BrowserTypeLaunchOptions
             {
-                Headless = false,
+                Headless = headlessMode,
                 Args = new List<string> { "--start-maximized" },
-                //SlowMo = 50,
-                
             };
 
             PlaywrightInstance = await Playwright.CreateAsync();
@@ -31,6 +29,12 @@ namespace qpm.e2e.tests
 
             await page.GotoAsync(url);
             return page;
+        }
+
+        public void Dispose()
+        {
+            Browser?.DisposeAsync();
+            PlaywrightInstance?.Dispose();
         }
     }
 }

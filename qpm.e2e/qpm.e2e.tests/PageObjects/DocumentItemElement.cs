@@ -4,29 +4,120 @@ namespace qpm.e2e.tests.PageObjects
 {
     public class DocumentItemElement
     {
-        public async Task<ILocator> FillTitleAndDescription(IPage page, string piTitle, string piDescription)
-        {
-            var piItem = page.Locator("//div[@class='document__block']").First;
-            await piItem.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        public const string TitleXPathLocator = "//div[contains(@data-bunit-item,'content-editable')]";
+        public const string DescriptionXPathLocator = "//div[@class='renderer' and @id]";
+        private const string DeleteButtonXPathLocator = "//div[@class='document__item']//span[@title='Delete']";
 
-            return await FillTitleAndDescription(piItem, piTitle, piDescription);
+        public async Task<ILocator> GetItemsOnPage(IPage page)
+        {
+            var piItems = page.Locator("//div[@class='document__block']");
+            return piItems;
         }
 
-        public async Task<ILocator> FillTitleAndDescription(ILocator item, string title, string description)
+        public async Task<ILocator> FillTitleAndDescription(IPage page, string piTitle, string piDescription)
         {
-            const string titleXPathLocator = "//div[contains(@data-bunit-item,'content-editable')]";
-            const string descriptionXPathLocator = "//div[@class='renderer' and @id]";
+            var piItem = (await GetItemsOnPage(page)).First;
+            await piItem.WaitForAsync(new() { State = WaitForSelectorState.Visible });
 
-            await FillActionsAsync(item, titleXPathLocator, title);
+            return await FillTitleAndDescription(piItem, piTitle, piDescription, ItemTypes.ProductIncrement);
+        }
 
-            // TODO: make it with switch for item type
-            if (await item.Locator(descriptionXPathLocator).CountAsync() == 0)
+        public async Task<ILocator> FillTitleAndDescription(ILocator item, string title, string description, ItemTypes itemType)
+        {
+            await FillActionsAsync(item, TitleXPathLocator, title);
+
+            if (await item.Locator(DescriptionXPathLocator).CountAsync() == 0)
             {
-                await item.Locator("//span[contains(@style,'circle-filled')]/../..").ClickAsync();
+                await ExpandItem(item, itemType);
             }
 
-            await FillActionsAsync(item, descriptionXPathLocator, description);
+            await FillActionsAsync(item, DescriptionXPathLocator, description);
             return item;
+        }
+
+        public async Task<string> GetDocumentItemTitle(ILocator item)
+        {
+            return await item.Locator(TitleXPathLocator).InnerTextAsync();
+        }
+
+        public async Task<string> GetDocumentItemDescription(ILocator item, ItemTypes itemType)
+        {
+            if (await item.Locator(DescriptionXPathLocator).CountAsync() == 0)
+            {
+                await ExpandItem(item, itemType);
+            }
+            return await item.Locator(DescriptionXPathLocator).First.InnerTextAsync();
+        }
+
+        public async Task ExpandItem(ILocator item, ItemTypes itemType)
+        {
+            switch (itemType)
+            {
+                case ItemTypes.ProductIncrement:
+                    {
+                        await item.Locator("//span[contains(@style,'circle-filled')]/../..").ClickAsync();
+                        await item.Locator("//span[contains(@style,'circle-outline')]/../..").WaitForAsync();
+                        break;
+                    }
+                case ItemTypes.Epic:
+                    {
+                        await item.Locator("//span[contains(@style,'triangle-filled')]/../..").ClickAsync();
+                        await item.Locator("//span[contains(@style,'triangle-outline')]/../..").WaitForAsync();
+                        break;
+                    }
+                case ItemTypes.Capability:
+                    {
+                        await item.Locator("//span[contains(@style,'capability-item-filled')]/../..").ClickAsync();
+                        await item.Locator("//span[contains(@style,'capability-item-outline')]/../..").WaitForAsync();
+                        break;
+                    }
+                case ItemTypes.Subsystem:
+                    {
+                        await item.Locator("//span[contains(@style,'subsystem-item-filled')]/../..").ClickAsync();
+                        await item.Locator("//span[contains(@style,'subsystem-item-outline')]/../..").WaitForAsync();
+                        break;
+                    }
+                case ItemTypes.None:
+                
+                
+                    throw new NotImplementedException($"Expanding for {itemType.ToString()} is not implemented");
+            }
+        }
+
+        public async Task ShrinkItem(ILocator item, ItemTypes itemType)
+        {
+            switch (itemType)
+            {
+                case ItemTypes.ProductIncrement:
+                    {
+                        await item.Locator("//span[contains(@style,'circle-outline')]/../..").ClickAsync();
+                        await item.Locator("//span[contains(@style,'circle-filled')]/../..").WaitForAsync();
+                        break;
+                    }
+                
+                case ItemTypes.Subsystem:
+                    {
+                        await item.Locator("//span[contains(@style,'subsystem-item-outline')]/../..").ClickAsync();
+                        await item.Locator("//span[contains(@style,'subsystem-item-filled')]/../..").WaitForAsync();
+                        break;
+                    }
+                case ItemTypes.Epic:
+                case ItemTypes.None:
+                case ItemTypes.Capability:
+                    throw new NotImplementedException($"Shrinking for {itemType.ToString()} is not implemented");
+            }
+        }
+
+        public void DeleteDocumentItems(IPage page)
+        {
+            var deletePIButtons = page.Locator(DeleteButtonXPathLocator);
+            DeleteButtonClick(deletePIButtons);
+        }
+
+        public void DeleteDocumentItems(ILocator locator)
+        {
+            var deletePIButtons = locator.Locator(DeleteButtonXPathLocator);
+            DeleteButtonClick(deletePIButtons);
         }
 
         private async Task FillActionsAsync(ILocator piItem, string innerItemXPath, string textToFill)
@@ -40,18 +131,6 @@ namespace qpm.e2e.tests.PageObjects
             await piItemName.PressAsync("Enter", new() { Delay = 300 });
         }
 
-        public void DeleteDocumentItems(IPage page)
-        {
-            var deletePIButtons = page.Locator("//div[@class='document__item']//span[@title='Delete']");
-            DeleteButtonClick(deletePIButtons);
-        }
-
-        public void DeleteDocumentItems(ILocator locator)
-        {
-            var deletePIButtons = locator.Locator("//div[@class='document__item']//span[@title='Delete']");
-            DeleteButtonClick(deletePIButtons);
-        }
-
         private static void DeleteButtonClick(ILocator deletePIButtons)
         {
             var deleteButtonsList = deletePIButtons.AllAsync()
@@ -59,8 +138,11 @@ namespace qpm.e2e.tests.PageObjects
                             .ToList();
             deleteButtonsList.ForEach(x => x.ClickAsync().Wait());
         }
+
+
     }
 
+    // TODO: move to separate class
     public enum ItemTypes
     {
         None = 0,
