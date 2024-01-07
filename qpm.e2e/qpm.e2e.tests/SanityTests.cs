@@ -6,6 +6,7 @@ using NUnit.Framework.Internal;
 using qpm.e2e.tests.PageObjects;
 using qpm.e2e.tests.PageObjects.Elements;
 using System.Globalization;
+using System.Text;
 
 namespace qpm.e2e.tests
 {
@@ -15,7 +16,7 @@ namespace qpm.e2e.tests
         private const string BaseUrl = "https://app.qpm.digital/";
         private const string AdminName = "hinogir860@vasteron.com";
         private const string UserName = "tidaver777@talmetry.com";
-        private const string Password = "6T76vuEjfgs9US5";
+        private const string Password = "NlQ3NnZ1RWpmZ3M5VVM1";
 
         private const string FirstPiTitle = "First PI item";
         private const string FirstPiDescription = "This is first PI item description";
@@ -58,10 +59,13 @@ namespace qpm.e2e.tests
         {
             // Arrange
             var startAdminPage = new StartPage(BaseUrl);
-            var startAdminPageTask = startAdminPage.LoadStartPage(AdminName, Password);
+
+            byte[] data = Convert.FromBase64String(Password);
+            string decodedPassword = Encoding.UTF8.GetString(data);
+            var startAdminPageTask = startAdminPage.LoadStartPage(AdminName, decodedPassword);
 
             var startUserPage = new StartPage(BaseUrl);
-            var startUserPageTask = startUserPage.LoadStartPage(UserName, Password);
+            var startUserPageTask = startUserPage.LoadStartPage(UserName, decodedPassword);
 
             _adminPage = await startAdminPageTask;
             var adminHeaderElement = await startAdminPage.ChooseDefaultSettings(_adminPage);
