@@ -26,7 +26,7 @@ namespace qpm.e2e.tests.PageObjects
         {
             await _page.Locator(CreateSubsystemButtonLocator).ClickAsync();
 
-            Task.Delay(3000).Wait(); //TODO: need to find more sophisticated way. Here should be some explicit wait.
+            Task.Delay(TimeSpan.FromSeconds(3)).Wait(); //TODO: need to find more sophisticated way. Here should be some explicit wait.
             ILocator subsystemsItem = await new DocumentItemElement()
                 .FillTitleAndDescription(_page, subSystemName, subSystemDescription);
 

@@ -16,7 +16,7 @@ namespace qpm.e2e.tests.PageObjects
         {
             await _page.Locator("//button[text()='Create product increment']").ClickAsync();
 
-            Task.Delay(3000).Wait(); //TODO: Should be some explicit wait.
+            Task.Delay(TimeSpan.FromSeconds(3)).Wait(); //TODO: Should be some explicit wait.
             ILocator piItem = await new DocumentItemElement()
                 .FillTitleAndDescription(_page, piTitle, piDescription);
 

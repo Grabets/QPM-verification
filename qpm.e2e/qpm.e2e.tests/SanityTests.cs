@@ -37,7 +37,7 @@ namespace qpm.e2e.tests
         private const string SecondEpicTitle = "Second Epic";
         private const string SecondEpicDescription = "Second Epic description";
 
-        private IPage? _adminPage;
+        private IPage _adminPage;
         private ProductIncrementsPage? _piPage;
         private SubsystemElement? _subSystemItem;
         private SubsystemElement? _secondSubSystemItem;
@@ -47,7 +47,7 @@ namespace qpm.e2e.tests
         {
             _subSystemItem?.DeleteSubsystem();
             _secondSubSystemItem?.Expand();
-            Task.Delay(TimeSpan.FromSeconds(2)).Wait();
+            Task.Delay(TimeSpan.FromSeconds(2)).Wait(); //TODO: Need to find good explicit wait
             _secondSubSystemItem?.DeleteSubsystem();
 
             _piPage?.NavigateToPage(BaseUrl).Wait();
@@ -71,6 +71,7 @@ namespace qpm.e2e.tests
             var adminHeaderElement = await startAdminPage.ChooseDefaultSettings(_adminPage);
             _piPage = await adminHeaderElement.PIButtonClick();
 
+            //Act
                 //// Going to create two unique product increments as administator 
             string tomorrowDateInput = PiPlannedDateTime.ToString("dddd, dd MMMM yyyy", CultureInfo.InvariantCulture);
             await _piPage.CreatePI(FirstPiTitle, FirstPiDescription, tomorrowDateInput);
@@ -101,7 +102,8 @@ namespace qpm.e2e.tests
             string expectedPlannedDate = PiPlannedDateTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
 
             var piItemElements = await userPIPage.GetPIItemElements();
-
+            
+            //Assert
                 //// Going to assert first product increment with epic data
             var firstPiElement = piItemElements.First();
             using (new AssertionScope())
@@ -116,7 +118,7 @@ namespace qpm.e2e.tests
             }
             await firstPiElement.Shrink();
 
-                //// Going to assert first product increment with epic data
+                //// Going to assert second product increment with epic data
             var secondPiElement = piItemElements.Last();
             using (new AssertionScope())
             {
