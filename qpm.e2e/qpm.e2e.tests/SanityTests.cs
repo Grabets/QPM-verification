@@ -54,7 +54,7 @@ namespace qpm.e2e.tests
         }
 
         [Test]
-        public async Task UsersIterationTest()
+        public async Task AdminCreatesPIsAndEpics_UserVerifiesData()
         {
             // Arrange
             var startAdminPage = new StartPage(BaseUrl);
