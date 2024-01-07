@@ -13,7 +13,7 @@ namespace qpm.e2e.tests.PageObjects.Elements
             SubsystemsItem = subsystemsItem;
         }
 
-        internal async Task CreateCapability(string capabilityName, string capabilityDescription)
+        public async Task CreateCapability(string capabilityName, string capabilityDescription)
         {
             await SubsystemsItem.Locator("//span[@title='Create new']").ClickAsync();
             var capabilityBlock = SubsystemsItem.Locator("//h3[text()='Capabilities']/ancestor::div[contains(@class,'document__branch')]");
@@ -21,7 +21,7 @@ namespace qpm.e2e.tests.PageObjects.Elements
             .FillTitleAndDescription(capabilityBlock, capabilityName, capabilityDescription, ItemTypes.Capability);
         }
 
-        internal async Task CreateEpic(string epicName, string epicDescription)
+        public async Task CreateEpic(string epicName, string epicDescription)
         {
             if (CapabilityItem == null)
             {
@@ -38,22 +38,22 @@ namespace qpm.e2e.tests.PageObjects.Elements
             await piAssignButton.ClickAsync();
         }
 
-        internal void DeleteSubsystem()
+        public void DeleteSubsystem()
         {
             var docItemElement = new DocumentItemElement();
             docItemElement.DeleteDocumentItems(EpicItem);
-            Task.Delay(300).Wait();
+            Task.Delay(300).Wait(); // TODO: Need to find some explicit wait for item deletion
             docItemElement.DeleteDocumentItems(CapabilityItem);
-            Task.Delay(300).Wait();
+            Task.Delay(300).Wait(); // TODO: Need to find some explicit wait for item deletion
             docItemElement.DeleteDocumentItems(SubsystemsItem);
         }
 
-        internal async Task Shrink()
+        public async Task Shrink()
         {
             await new DocumentItemElement().ShrinkItem(SubsystemsItem, ItemTypes.Subsystem);
         }
 
-        internal async void Expand()
+        public async void Expand()
         {
             await new DocumentItemElement().ExpandItem(SubsystemsItem, ItemTypes.Subsystem);
         }

@@ -4,9 +4,6 @@ namespace qpm.e2e.tests.PageObjects.Elements
 {
     public class ProductIncrementItemElement
     {
-        //TODO: better to make with EpicItem as this xpath dublicates
-        private const string EpicsParentXPathSelector = "//h3[text()='Epics']/ancestor::div[contains(@class,'document__branch')][1]";
-
         public string Title => new DocumentItemElement().GetDocumentItemTitle(_item).Result;
         public string Description => GetItemDescription().Result;
         public string PlannedDate => GetPlannedDate().Result;
@@ -46,26 +43,33 @@ namespace qpm.e2e.tests.PageObjects.Elements
         /// <exception cref="NullReferenceException"></exception>
         public async Task ExpandEpics()
         {
-            var epics = _item.Locator(EpicsParentXPathSelector);
+            var epicsParentXPathSelector = "//h3[text()='Epics']/ancestor::div[contains(@class,'document__branch')][1]";
+            var epics = _item.Locator(epicsParentXPathSelector);
             var innerText = await epics.InnerTextAsync();
+
             if (!innerText.Contains("(1)"))
                 throw new NullReferenceException("Epics not found");
 
-            await epics.Locator("//span[contains(@style,'triangle-filled')]").ClickAsync();
-            await epics.Locator("//span[contains(@style,'triangle-outline')]").WaitForAsync();
+            var documentItemElement = new DocumentItemElement();
+            await documentItemElement.ExpandItem(epics, ItemTypes.Epic);
+            await documentItemElement.ExpandItem(epics, ItemTypes.Epic);
 
-            await new DocumentItemElement().ExpandItem(epics, ItemTypes.Epic);
-
-            _epicItem = epics.Locator("//div[@class='document__block']");
+            _epicItem = epics.Locator(DocumentItemElement.DocumentBlockXPathLocator);
         }
 
         public string GetEpicItemTitle()
         {
+            if (_epicItem == null)
+                throw new NullReferenceException("The epic item is not expanded");
+
             return _epicItem.Locator(DocumentItemElement.TitleXPathLocator).First.InnerTextAsync().Result;
         }
 
         public string GetEpicItemDescription()
         {
+            if (_epicItem == null)
+                throw new NullReferenceException("The epic item is not expanded");
+
             return _epicItem.Locator(DocumentItemElement.TitleXPathLocator).Nth(1).InnerTextAsync().Result;
         }
     }

@@ -4,6 +4,7 @@ namespace qpm.e2e.tests.PageObjects.Elements
 {
     public class DocumentItemElement
     {
+        public const string DocumentBlockXPathLocator = "//div[@class='document__block']";
         public const string TitleXPathLocator = "//div[contains(@data-bunit-item,'content-editable')]";
         public const string DescriptionXPathLocator = "//div[@class='renderer' and @id]";
         private const string DeleteButtonXPathLocator = "//div[@class='document__item']//span[@title='Delete']";
@@ -11,7 +12,7 @@ namespace qpm.e2e.tests.PageObjects.Elements
 
         public ILocator GetItemsOnPage(IPage page)
         {
-            var piItems = page.Locator("//div[@class='document__block']");
+            var piItems = page.Locator(DocumentBlockXPathLocator);
             return piItems;
         }
 
