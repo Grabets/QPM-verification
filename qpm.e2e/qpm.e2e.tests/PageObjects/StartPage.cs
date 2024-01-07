@@ -31,11 +31,11 @@ namespace qpm.e2e.tests.PageObjects
             return startPage;
         }
 
-        public async Task<HeaderElement> ChooseDefaultSettings(IPage page)
+        public async Task<HeaderElement> ChooseDefaultSettings(IPage page, string projectName = "Draft")
         {
             var userHeaderElement = new HeaderElement(page);
             await userHeaderElement.ChooseFirstProduct();
-            await userHeaderElement.ChooseFirstProject(projectName: "Draft");
+            await userHeaderElement.ChooseFirstProject(projectName);
             return userHeaderElement;
         }
 
