@@ -77,13 +77,16 @@ namespace qpm.e2e.tests
 
             _secondSubSystemItem = await subsystemPage.CreateSubsystem(SecondSubsystemTitle, SecondSubsystemDescription);
             await _secondSubSystemItem.CreateCapability(SecondCapabilityName, SecondCapabilityDescription);
-            await _secondSubSystemItem.CreateEpic(SecondEpicTitle, SecondEpicDescription, SecondPiTitle);
+            await _secondSubSystemItem.CreateEpic(SecondEpicTitle, SecondEpicDescription);
+            var sidebarElement = new SidebarElement();
+            await sidebarElement.ChooseElementsInSideBar(_adminPage, SecondPiTitle);
 
             await _secondSubSystemItem.Shrink();
 
             _subSystemItem = await subsystemPage.CreateSubsystem(FirstSubsystemTitle, FirstSubsystemDescription);
             await _subSystemItem.CreateCapability(FirstCapabilityName, FirstCapabilityDescription);
-            await _subSystemItem.CreateEpic(FirstEpicTitle, FirstEpicDescription, FirstPiTitle);
+            await _subSystemItem.CreateEpic(FirstEpicTitle, FirstEpicDescription);
+            await sidebarElement.ChooseElementsInSideBar(_adminPage, FirstPiTitle);
 
                 //// Going to open product increment page as user
             var userPage = await startUserPageTask;

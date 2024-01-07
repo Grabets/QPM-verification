@@ -119,7 +119,7 @@ namespace qpm.e2e.tests.PageObjects.Elements
 
             await piItemName.DblClickAsync(new() { Delay = 300 });
             await piItemName.PressAsync("Control+a", new() { Delay = 100 });
-            await piItemName.PressSequentiallyAsync(textToFill, new() { Delay = 30 });
+            await piItemName.PressSequentiallyAsync(textToFill);
             await piItemName.PressAsync("Enter", new() { Delay = 300 });
         }
 

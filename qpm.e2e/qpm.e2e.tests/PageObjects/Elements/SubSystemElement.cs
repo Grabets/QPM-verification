@@ -4,14 +4,12 @@ namespace qpm.e2e.tests.PageObjects.Elements
 {
     public class SubsystemElement
     {
-        private IPage Page { get; set; }
         private readonly ILocator SubsystemsItem;
         private ILocator CapabilityItem;
         private ILocator EpicItem;
 
-        public SubsystemElement(IPage page, ILocator subsystemsItem)
+        public SubsystemElement(ILocator subsystemsItem)
         {
-            Page = page;
             SubsystemsItem = subsystemsItem;
         }
 
@@ -23,7 +21,7 @@ namespace qpm.e2e.tests.PageObjects.Elements
             .FillTitleAndDescription(capabilityBlock, capabilityName, capabilityDescription, ItemTypes.Capability);
         }
 
-        internal async Task CreateEpic(string epicName, string epicDescription, string piName)
+        internal async Task CreateEpic(string epicName, string epicDescription)
         {
             if (CapabilityItem == null)
             {
@@ -38,13 +36,6 @@ namespace qpm.e2e.tests.PageObjects.Elements
 
             var piAssignButton = EpicItem.Locator("//div[@class='btns']/div[text()='Add Product Increment']");
             await piAssignButton.ClickAsync();
-
-            //TODO: not good
-            var sidebar = Page.Locator("//div[@class='sidebar is-enabled']").Last;
-            await sidebar.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-
-            await sidebar.Locator($"//span[text()='{piName}']/..").ClickAsync();
-            await sidebar.Locator("//button[text()='Save']").ClickAsync();
         }
 
         internal void DeleteSubsystem()

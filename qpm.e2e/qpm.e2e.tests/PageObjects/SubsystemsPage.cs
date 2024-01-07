@@ -38,7 +38,7 @@ namespace qpm.e2e.tests.PageObjects
             ILocator subsystemsItem = await new DocumentItemElement()
                 .FillTitleAndDescription(Page, subSystemName, subSystemDescription);
 
-            return new SubsystemElement(Page, subsystemsItem);
+            return new SubsystemElement(subsystemsItem);
         }
     }
 }
