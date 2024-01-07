@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Playwright;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using qpm.e2e.tests.PageObjects;
 using System.Globalization;
 
@@ -9,152 +11,115 @@ namespace qpm.e2e.tests
     [TestFixture]
     public class SanityTests
     {
-        const string BaseUrl = "https://app.qpm.digital/";
-        private IPage AdminPage { get; set; }
-        private IPage UserPage { get; set; }
+        private const string BaseUrl = "https://app.qpm.digital/";
+        private const string AdminName = "hinogir860@vasteron.com";
+        private const string UserName = "tidaver777@talmetry.com";
+        private const string Password = "6T76vuEjfgs9US5";
 
+        private const string FirstPiTitle = "First PI item";
+        private const string FirstPiDescription = "This is first PI item description";
+        private const string SecondPiTitle = "Second PI item";
+        private const string SecondPiDescription = "This is second PI item description";
+        private static DateTime PiPlannedDateTime = DateTime.Today.AddDays(1);
+
+        private const string FirstSubsystemTitle = "First subsystem";
+        private const string FirstSubsystemDescription = "First subsystem description";
+        private const string SecondSubsystemTitle = "Second subsystem";
+        private const string SecondSubsystemDescription = "Second subsystem description";
+        private const string FirstCapabilityName = "First capability";
+        private const string FirstCapabilityDescription = "First capability description";
+        private const string SecondCapabilityName = "Second capability";
+        private const string SecondCapabilityDescription = "Second capability description";
+        private const string FirstEpicTitle = "First Epic";
+        private const string FirstEpicDescription = "First Epic description";
+        private const string SecondEpicTitle = "Second Epic";
+        private const string SecondEpicDescription = "Second Epic description";
+
+        private IPage? _adminPage;
+        private ProductIncrementsPage? _piPage;
+        private SubsystemsPage.SubsystemElement? _subSystemItem;
+        private SubsystemsPage.SubsystemElement? _secondSubSystemItem;
 
         [TearDown]
         public void TearDown()
         {
-            //Add here browser runner dispose
-            // https://temp-mail.org/
-            //if (AdminPage.Url == BaseUrl + ProductIncrementsPage.ResourceName)
-            //{
-            //    new DocumentItemElement().DeleteDocumentItems(AdminPage);
-            //}
+            _subSystemItem?.DeleteSubsystem();
+            _secondSubSystemItem?.Expand();
+            Task.Delay(TimeSpan.FromSeconds(2)).Wait();
+            _secondSubSystemItem?.DeleteSubsystem();
 
-
-
-
-            // TODO: add remove for the PI here
-
+            _piPage?.NavigateToPage(BaseUrl).Wait();
+            new DocumentItemElement().DeleteDocumentItems(_adminPage);
         }
 
         [Test]
         public async Task UsersIterationTest()
         {
-            const string adminName = "hinogir860@vasteron.com";
-            const string password = "6T76vuEjfgs9US5";
-            const string userName = "tidaver777@talmetry.com";
+            // Arrange
+            var startAdminPage = new StartPage(BaseUrl);
+            var startAdminPageTask = startAdminPage.LoadStartPage(AdminName, Password);
 
-            var adminBrowser = new BrowserRunner();
-            AdminPage = await LoadStartPage(adminName, password, adminBrowser, false);
+            var startUserPage = new StartPage(BaseUrl);
+            var startUserPageTask = startUserPage.LoadStartPage(UserName, Password);
 
-            // admins actions for products and project activation
-            var headerElement = new HeaderElement(AdminPage);
-            await headerElement.ChooseFirstProduct();
-            await headerElement.ChooseFirstProject(projectName: "Draft");
+            _adminPage = await startAdminPageTask;
+            var adminHeaderElement = await startAdminPage.ChooseDefaultSettings(_adminPage);
+            _piPage = await adminHeaderElement.PIButtonClick();
 
+                //// Going to create two unique product increments as administator 
+            string tomorrowDateInput = PiPlannedDateTime.ToString("dddd, dd MMMM yyyy", CultureInfo.InvariantCulture);
+            await _piPage.CreatePI(FirstPiTitle, FirstPiDescription, tomorrowDateInput);
+            await _piPage.CreatePI(SecondPiTitle, SecondPiDescription, tomorrowDateInput);
 
-            // Create first PI
-            var piPage = await headerElement.PIButtonClick();
-            const string firstPiTitle = "First PI item";
-            var plannedDateTime = DateTime.Today.AddDays(1);
-            string tomorrowDateInput = plannedDateTime.ToString("dddd, dd MMMM yyyy", CultureInfo.InvariantCulture);
-            const string firstPiDescription = "This is first PI item description";
-            await piPage.CreatePI(firstPiTitle, firstPiDescription, tomorrowDateInput);
-            const string secondPiTitle = "Second PI item";
-            const string secondPiDescription = "This is second PI item description";
-            await piPage.CreatePI(secondPiTitle, secondPiDescription, tomorrowDateInput);
+                //// Going to create two unique subsystems with filled capability and epics as administrator
+            var subsystemPage = await SubsystemsPage.Navigate(_adminPage, BaseUrl);
 
-            //Move to the Subsystems page in order to create Epics
-            var subsystemPage = await SubsystemsPage.Navigate(AdminPage, BaseUrl);
+            _secondSubSystemItem = await subsystemPage.CreateSubsystem(SecondSubsystemTitle, SecondSubsystemDescription);
+            await _secondSubSystemItem.CreateCapability(SecondCapabilityName, SecondCapabilityDescription);
+            await _secondSubSystemItem.CreateEpic(SecondEpicTitle, SecondEpicDescription, SecondPiTitle);
 
-            const string secondSubsystemTitle = "Second subsystem";
-            const string secondSubsystemDescription = "Second subsystem description";
-            var secondSubsystemItem = await subsystemPage.CreateSubsystem(secondSubsystemTitle, secondSubsystemDescription);
-            await secondSubsystemItem.CreateCapability("Second capability", "Second capability description");
+            await _secondSubSystemItem.Shrink();
 
-            const string secondEpicTitle = "Second Epic";
-            const string secondEpicDescription = "Second Epic description";
-            await secondSubsystemItem.CreateEpic(secondEpicTitle, secondEpicDescription, secondPiTitle);
-            
-            await secondSubsystemItem.Shrink();
+            _subSystemItem = await subsystemPage.CreateSubsystem(FirstSubsystemTitle, FirstSubsystemDescription);
+            await _subSystemItem.CreateCapability(FirstCapabilityName, FirstCapabilityDescription);
+            await _subSystemItem.CreateEpic(FirstEpicTitle, FirstEpicDescription, FirstPiTitle);
 
-            const string firstSubsystemTitle = "First subsystem";
-            const string firstSubsystemDescription = "First subsystem description";
-            var subSystemItem = await subsystemPage.CreateSubsystem(firstSubsystemTitle, firstSubsystemDescription);
-            await subSystemItem.CreateCapability("First capability", "First capability description");
+                //// Going to open product increment page as user
+            var userPage = await startUserPageTask;
+            var userHeaderElement = await startUserPage.ChooseDefaultSettings(userPage);
 
-            const string firstEpicTitle = "First Epic";
-            const string firstEpicDescription = "First Epic description";
-            await subSystemItem.CreateEpic(firstEpicTitle, firstEpicDescription, firstPiTitle);
-
-            
-
-            
-
-
-            var userBrowser = new BrowserRunner();
-            var userPage = await LoadStartPage(userName, password, userBrowser, false);
-
-            var userHeaderElement = new HeaderElement(userPage);
-            await userHeaderElement.ChooseFirstProduct();
-            await userHeaderElement.ChooseFirstProject(projectName: "Draft");
-            
             var userPIPage = await userHeaderElement.PIButtonClick();
 
+            string expectedPlannedDate = PiPlannedDateTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
 
             var piItemElements = await userPIPage.GetPIItemElements();
+
+                //// Going to assert first product increment with epic data
             var firstPiElement = piItemElements.First();
-            firstPiElement.Title.Should().Be(firstPiTitle);
-            await firstPiElement.Expand();
-            firstPiElement.Description.Should().Be(firstPiDescription);
-            string expectedPlannedDate = plannedDateTime.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
-
-            firstPiElement.PlannedDate.Should().Be(expectedPlannedDate);
-
-            await firstPiElement.ExpandEpics();
-            firstPiElement.GetEpicItemTitle().Should().Contain(firstEpicTitle);
-            firstPiElement.GetEpicItemDescription().Should().Be(firstEpicDescription);
-
+            using (new AssertionScope())
+            {
+                firstPiElement.Title.Should().Be(FirstPiTitle);
+                await firstPiElement.Expand();
+                firstPiElement.Description.Should().Be(FirstPiDescription);
+                firstPiElement.PlannedDate.Should().Be(expectedPlannedDate);
+                await firstPiElement.ExpandEpics();
+                firstPiElement.GetEpicItemTitle().Should().Contain(FirstEpicTitle);
+                firstPiElement.GetEpicItemDescription().Should().Be(FirstEpicDescription);
+            }
             await firstPiElement.Shrink();
 
+                //// Going to assert first product increment with epic data
             var secondPiElement = piItemElements.Last();
-            secondPiElement.Title.Should().Be(secondPiTitle);
-            await secondPiElement.Expand();
-            secondPiElement.Description.Should().Be(secondPiDescription);
-            secondPiElement.PlannedDate.Should().Be(expectedPlannedDate);
-
-            await secondPiElement.ExpandEpics();
-            secondPiElement.GetEpicItemTitle().Should().Contain(secondEpicTitle);
-            secondPiElement.GetEpicItemDescription().Should().Be(secondEpicDescription);
-            userBrowser.Dispose();
-
-
-            subSystemItem.DeleteSubsystem();
-            secondSubsystemItem.Expand();
-            Task.Delay(TimeSpan.FromSeconds(2)).Wait();
-            secondSubsystemItem.DeleteSubsystem();
-            
-            
-
-            await piPage.NavigateToPage(BaseUrl);
-            new DocumentItemElement().DeleteDocumentItems(AdminPage);
-
-        }
-
-
-
-
-
-        //TODO: move it to the StartPage object
-        private static async Task<IPage> LoadStartPage(string userName, string password, BrowserRunner browserRunner, bool headlessMode = true)
-        {
-            var adminPage = await browserRunner.OpenInitPage(BaseUrl, headlessMode);
-
-            await adminPage.Locator("id=signInName").FillAsync(userName);
-            await adminPage.Locator("id=password").FillAsync(password);
-            await adminPage.Locator("id=next").ClickAsync();
-
-            await adminPage.WaitForLoadStateAsync();
-
-            await adminPage.Locator("text=Product increments").WaitForAsync();
-
-            await Assertions.Expect(adminPage).ToHaveURLAsync($"{BaseUrl}inbox");
-
-            return adminPage;
+            using (new AssertionScope())
+            {
+                secondPiElement.Title.Should().Be(SecondPiTitle);
+                await secondPiElement.Expand();
+                secondPiElement.Description.Should().Be(SecondPiDescription);
+                secondPiElement.PlannedDate.Should().Be(expectedPlannedDate);
+                await secondPiElement.ExpandEpics();
+                secondPiElement.GetEpicItemTitle().Should().Contain(SecondEpicTitle);
+                secondPiElement.GetEpicItemDescription().Should().Be(SecondEpicDescription);
+            }
         }
     }
 }

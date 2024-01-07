@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "qpm.e2e.tests", "qpm.e2e.tests\qpm.e2e.tests.csproj", "{C86A7889-AF02-49EE-81A6-68EA96AA0008}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{639E68B4-9CFC-4AB5-B7AD-902AFB65104B}"
-	ProjectSection(SolutionItems) = preProject
-		default.runsettings = default.runsettings
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

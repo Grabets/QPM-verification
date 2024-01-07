@@ -7,11 +7,11 @@ namespace qpm.e2e.tests
         private IPlaywright? PlaywrightInstance;
         private IBrowser? Browser;
 
-        public async Task<IPage> OpenInitPage(string url, bool headlessMode)
+        public async Task<IPage> OpenInitPage(string url)
         {
             var launchOptions = new BrowserTypeLaunchOptions
             {
-                Headless = headlessMode,
+                Headless = false,
                 Args = new List<string> { "--start-maximized" },
             };
 
@@ -29,12 +29,6 @@ namespace qpm.e2e.tests
 
             await page.GotoAsync(url);
             return page;
-        }
-
-        public void Dispose()
-        {
-            Browser?.DisposeAsync();
-            PlaywrightInstance?.Dispose();
         }
     }
 }
