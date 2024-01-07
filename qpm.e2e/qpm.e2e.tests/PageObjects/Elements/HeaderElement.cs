@@ -1,6 +1,6 @@
 ﻿using Microsoft.Playwright;
 
-namespace qpm.e2e.tests.PageObjects
+namespace qpm.e2e.tests.PageObjects.Elements
 {
     public class HeaderElement
     {

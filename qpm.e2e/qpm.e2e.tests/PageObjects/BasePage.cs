@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Playwright;
 
 namespace qpm.e2e.tests.PageObjects
 {
-    public class BasePage
+    public abstract class BasePage
     {
+        protected IPage _page;
 
+        public BasePage(IPage page)
+        {
+            _page = page;
+        }
     }
 }

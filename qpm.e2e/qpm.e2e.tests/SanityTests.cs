@@ -4,6 +4,7 @@ using Microsoft.Playwright;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using qpm.e2e.tests.PageObjects;
+using qpm.e2e.tests.PageObjects.Elements;
 using System.Globalization;
 
 namespace qpm.e2e.tests
@@ -37,8 +38,8 @@ namespace qpm.e2e.tests
 
         private IPage? _adminPage;
         private ProductIncrementsPage? _piPage;
-        private SubsystemsPage.SubsystemElement? _subSystemItem;
-        private SubsystemsPage.SubsystemElement? _secondSubSystemItem;
+        private SubsystemElement? _subSystemItem;
+        private SubsystemElement? _secondSubSystemItem;
 
         [TearDown]
         public void TearDown()

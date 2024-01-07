@@ -1,4 +1,5 @@
 ﻿using Microsoft.Playwright;
+using qpm.e2e.tests.PageObjects.Elements;
 
 namespace qpm.e2e.tests.PageObjects
 {
