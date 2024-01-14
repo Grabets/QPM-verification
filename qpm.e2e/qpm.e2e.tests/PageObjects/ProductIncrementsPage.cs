@@ -16,7 +16,7 @@ namespace qpm.e2e.tests.PageObjects
         {
             await _page.Locator("//button[text()='Create product increment']").ClickAsync();
 
-            Task.Delay(TimeSpan.FromSeconds(3)).Wait(); //TODO: Should be some explicit wait.
+            await Task.Delay(TimeSpan.FromSeconds(3)); //TODO: Should be some explicit wait.
             ILocator piItem = await new DocumentItemElement()
                 .FillTitleAndDescription(_page, piTitle, piDescription);
 
@@ -27,7 +27,6 @@ namespace qpm.e2e.tests.PageObjects
         {
             var url = baseUrl + ResourceName;
             await _page.GotoAsync(url);
-            await WaitForElementsPresense(DocumentItemElement.TitleXPathLocator, elementsCount: 2);
         }
 
         public async Task<List<ProductIncrementItemElement>> GetPIItemElements()
@@ -42,6 +41,17 @@ namespace qpm.e2e.tests.PageObjects
                 itemElements.Add(new ProductIncrementItemElement(piItemLocators.Nth(i)));
             }
             return itemElements;
+        }
+
+        public async Task DeletePIs()
+        {
+            await WaitForElementsPresense(DocumentItemElement.TitleXPathLocator, elementsCount: 2);
+
+            var piItems = new DocumentItemElement().GetItemsOnPage(_page);
+            if (await piItems.CountAsync() > 0)
+            {
+                await new DocumentItemElement().DeleteDocumentItems(_page);
+            }
         }
 
         private async Task ChooseDateInDatePicker(ILocator piItem, string plannedDate)

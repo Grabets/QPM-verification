@@ -25,7 +25,7 @@ namespace qpm.e2e.tests.PageObjects.Elements
 
         public async Task<ProductIncrementsPage> PIButtonClick()
         {
-            await Page.Locator("text=Product increments").ClickAsync();
+            await Page.Locator("text=Product increments").First.ClickAsync();
             return new ProductIncrementsPage(Page);
         }
     }

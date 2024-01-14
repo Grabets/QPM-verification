@@ -26,11 +26,22 @@ namespace qpm.e2e.tests.PageObjects
         {
             await _page.Locator(CreateSubsystemButtonLocator).ClickAsync();
 
-            Task.Delay(TimeSpan.FromSeconds(3)).Wait(); //TODO: need to find more sophisticated way. Here should be some explicit wait.
+            await Task.Delay(TimeSpan.FromSeconds(3)); //TODO: need to find more sophisticated way. Here should be some explicit wait.
             ILocator subsystemsItem = await new DocumentItemElement()
                 .FillTitleAndDescription(_page, subSystemName, subSystemDescription);
 
             return new SubsystemElement(subsystemsItem);
+        }
+
+        public List<SubsystemElement> GetSubsystemElementsOnPage()
+        {
+            var subsystemsLocator = new DocumentItemElement().GetItemsOnPage(_page);
+
+            var subsystemsList = subsystemsLocator.AllAsync()
+                           .Result
+                           .Select(x => new SubsystemElement(x))
+                           .ToList();
+            return subsystemsList;
         }
     }
 }

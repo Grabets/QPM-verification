@@ -102,34 +102,55 @@ namespace qpm.e2e.tests.PageObjects.Elements
             }
         }
 
-        public void DeleteDocumentItems(IPage page)
+        public async Task DeleteDocumentItems(IPage page)
         {
             var deletePIButtons = page.Locator(DeleteButtonXPathLocator);
-            DeleteButtonClick(deletePIButtons);
+            await DeleteButtonClick(deletePIButtons);
         }
 
-        public void DeleteDocumentItems(ILocator locator)
+        public async Task DeleteDocumentItems(ILocator locator)
         {
-            var deletePIButtons = locator.Locator(DeleteButtonXPathLocator);
-            DeleteButtonClick(deletePIButtons);
+            try
+            {
+                if (locator != null)
+                {
+                    var deletePIButtons = locator.Locator(DeleteButtonXPathLocator);
+                    await DeleteButtonClick(deletePIButtons);
+                }
+            }
+            catch (Exception)
+            {
+                // TODO: Here we need to add Logging with Error level to print this issue.
+            }
         }
 
         private async Task FillActionsAsync(ILocator piItem, string innerItemXPath, string textToFill)
         {
             var piItemName = piItem.Locator(innerItemXPath).First;
-
-            await piItemName.DblClickAsync(new() { Delay = 300 });
-            await piItemName.PressAsync("Control+a", new() { Delay = 100 });
+            await Task.Delay(500);
+            await piItemName.DblClickAsync(new() { Delay = 100 });
+            await Task.Delay(500);
+            await piItemName.PressAsync("Control+a");
+            await Task.Delay(500);
             await piItemName.PressSequentiallyAsync(textToFill);
-            await piItemName.PressAsync("Enter", new() { Delay = 300 });
+            await Task.Delay(500);
+            await piItemName.PressAsync("Enter", new() { Delay = 100 });
+            await Task.Delay(500);
         }
 
-        private static void DeleteButtonClick(ILocator deletePIButtons)
+        private async Task DeleteButtonClick(ILocator deletePIButtons)
         {
-            var deleteButtonsList = deletePIButtons.AllAsync()
-                            .Result
-                            .ToList();
-            deleteButtonsList.ForEach(x => x.ClickAsync().Wait());
+            try
+            {
+                while ((await deletePIButtons.AllAsync()).Count > 0)
+                {
+                    await Task.Delay(400);
+
+                   await deletePIButtons.First.ClickAsync();
+                }
+            }
+            catch { }
+            
         }
 
         private async Task ExpandDescription(ILocator item, ItemTypes itemType)

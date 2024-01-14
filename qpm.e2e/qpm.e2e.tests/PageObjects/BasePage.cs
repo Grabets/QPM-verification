@@ -23,16 +23,16 @@ namespace qpm.e2e.tests.PageObjects
 
         protected async Task WaitForElementsPresense(string locator, int elementsCount)
         {
+            var stopwatch = Stopwatch.StartNew();
             while (true)
             {
-                var stopwatch = Stopwatch.StartNew();
-
-                if (stopwatch.ElapsedMilliseconds > TimeSpan.FromSeconds(10).Milliseconds ||
+                if (stopwatch.ElapsedMilliseconds > TimeSpan.FromSeconds(10).TotalMilliseconds |
                     await _page.Locator(locator).CountAsync() == elementsCount)
                 {
                     stopwatch.Stop();
                     break;
                 }
+                await Task.Delay(300);
             }
         }
     }

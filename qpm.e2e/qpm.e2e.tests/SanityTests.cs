@@ -6,6 +6,7 @@ using NUnit.Framework.Internal;
 using qpm.e2e.tests.PageObjects;
 using qpm.e2e.tests.PageObjects.Elements;
 using System.Globalization;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace qpm.e2e.tests
@@ -38,38 +39,47 @@ namespace qpm.e2e.tests
         private const string SecondEpicDescription = "Second Epic description";
 
         private IPage _adminPage;
-        private ProductIncrementsPage? _piPage;
+        private ProductIncrementsPage _piPage;
         private SubsystemElement? _subSystemItem;
         private SubsystemElement? _secondSubSystemItem;
+        private string _decodedPassword;
+
+        [SetUp]
+        public async Task SetUp()
+        {
+            var startAdminPage = new StartPage(BaseUrl);
+
+            byte[] data = Convert.FromBase64String(Password);
+            _decodedPassword = Encoding.UTF8.GetString(data);
+
+            var startAdminPageTask = startAdminPage.LoadStartPage(AdminName, _decodedPassword);
+
+            _adminPage = startAdminPageTask.Result;
+            var adminHeaderElement = startAdminPage.ChooseDefaultSettings(_adminPage).Result;
+
+            await CleanSubsystemsIfExist();
+            await CleanProductIncrementsIfExist();
+
+            _piPage = await adminHeaderElement.PIButtonClick();
+        }
 
         [TearDown]
-        public void TearDown()
+        public async Task TearDown()
         {
             _subSystemItem?.DeleteSubsystem();
             _secondSubSystemItem?.Expand();
-            Task.Delay(TimeSpan.FromSeconds(2)).Wait(); //TODO: Need to find good explicit wait
+            await Task.Delay(TimeSpan.FromSeconds(2)); //TODO: Need to find good explicit wait
             _secondSubSystemItem?.DeleteSubsystem();
 
-            _piPage?.NavigateToPage(BaseUrl).Wait();
-            new DocumentItemElement().DeleteDocumentItems(_adminPage);
+            await CleanProductIncrementsIfExist();
         }
 
         [Test]
         public async Task AdminCreatesPIsAndEpics_UserVerifiesData()
         {
             // Arrange
-            var startAdminPage = new StartPage(BaseUrl);
-
-            byte[] data = Convert.FromBase64String(Password);
-            string decodedPassword = Encoding.UTF8.GetString(data);
-            var startAdminPageTask = startAdminPage.LoadStartPage(AdminName, decodedPassword);
-
             var startUserPage = new StartPage(BaseUrl);
-            var startUserPageTask = startUserPage.LoadStartPage(UserName, decodedPassword);
-
-            _adminPage = await startAdminPageTask;
-            var adminHeaderElement = await startAdminPage.ChooseDefaultSettings(_adminPage);
-            _piPage = await adminHeaderElement.PIButtonClick();
+            var startUserPageTask = startUserPage.LoadStartPage(UserName, _decodedPassword);
 
             //Act
                 //// Going to create two unique product increments as administator 
@@ -130,6 +140,30 @@ namespace qpm.e2e.tests
                 secondPiElement.GetEpicItemTitle().Should().Contain(SecondEpicTitle);
                 secondPiElement.GetEpicItemDescription().Should().Be(SecondEpicDescription);
             }
+        }
+
+        private async Task CleanSubsystemsIfExist()
+        {
+            var subsystemPage = await SubsystemsPage.Navigate(_adminPage, BaseUrl);
+
+
+            while (subsystemPage.GetSubsystemElementsOnPage().Count() > 0 )
+            {
+                var subSystemItems = subsystemPage.GetSubsystemElementsOnPage();
+                var firstSubsystem = subSystemItems.FirstOrDefault();
+                if (firstSubsystem != null)
+                {
+                    await firstSubsystem.SafelyExpandAll();
+                    await firstSubsystem.DeleteSubsystem();
+                }
+            }
+        }
+
+        private async Task CleanProductIncrementsIfExist()
+        {
+            var piPage = new ProductIncrementsPage(_adminPage);
+            await piPage.NavigateToPage(BaseUrl);
+            await piPage.DeletePIs();
         }
     }
 }
