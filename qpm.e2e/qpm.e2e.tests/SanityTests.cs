@@ -66,10 +66,7 @@ namespace qpm.e2e.tests
         [TearDown]
         public async Task TearDown()
         {
-            _subSystemItem?.DeleteSubsystem();
-            _secondSubSystemItem?.Expand();
-            await Task.Delay(TimeSpan.FromSeconds(2)); //TODO: Need to find good explicit wait
-            _secondSubSystemItem?.DeleteSubsystem();
+            await CleanSubsystemsIfExist();
 
             await CleanProductIncrementsIfExist();
         }
